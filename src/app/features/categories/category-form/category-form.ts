@@ -10,7 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AppCategory } from '../../../core/services/app-category';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { UpdateCategoryDto, CreateCategoryDto } from '../../../core/models/category.model';
 
 @Component({
@@ -25,7 +25,8 @@ import { UpdateCategoryDto, CreateCategoryDto } from '../../../core/models/categ
     MatIconModule,
     MatCardModule,
     MatSnackBarModule,
-    MatDividerModule
+    MatDividerModule,
+    RouterModule
   ],
   templateUrl: './category-form.html',
   styleUrl: './category-form.scss'

@@ -1,1 +1,200 @@
-<p>product-list works!</p>
+<!-- src/app/features/products/product-list/product-list.html -->
+<div class="product-list-container">
+  <div class="header">
+    <h2>Products</h2>
+    <button mat-raised-button color="primary" routerLink="/products/create">
+      <mat-icon>add</mat-icon>
+      Create Product
+    </button>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search products...</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onFilterChange()"
+                 placeholder="Search by name, SKU, or category">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Category</mat-label>
+          <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="onFilterChange()">
+            <mat-option [value]="null">All Categories</mat-option>
+            <mat-option *ngFor="let category of categories$ | async" [value]="category.categoryId">
+              {{category.categoryName}}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+            <mat-option value="all">All Status</mat-option>
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="clearFilters()" class="clear-filters-btn">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Products Table -->
+  <mat-card>
+    <mat-card-content>
+      <div *ngIf="filteredProducts$ | async as products; else loading">
+        <div *ngIf="products.length > 0; else noData">
+          <table mat-table [dataSource]="products" class="product-table">
+
+            <!-- Product Info Column -->
+            <ng-container matColumnDef="product">
+              <th mat-header-cell *matHeaderCellDef>Product</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="product-info">
+                  <strong class="product-name">{{product.productName}}</strong>
+                  <div class="product-meta">
+                    <span class="sku">SKU: {{product.productSku}}</span>
+                    <span class="description" *ngIf="product.productDescription">
+                      {{product.productDescription | slice:0:50}}{{product.productDescription && product.productDescription.length > 50 ? '...' : ''}}
+                    </span>
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Category Column -->
+            <ng-container matColumnDef="category">
+              <th mat-header-cell *matHeaderCellDef>Category</th>
+              <td mat-cell *matCellDef="let product">
+                <mat-chip class="category-chip">{{product.categoryName}}</mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Price Column -->
+            <ng-container matColumnDef="price">
+              <th mat-header-cell *matHeaderCellDef>Price</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="price-info">
+                  <strong class="sale-price">{{formatPrice(product.salePrice)}}</strong>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Stock Column -->
+            <ng-container matColumnDef="stock">
+              <th mat-header-cell *matHeaderCellDef>Stock</th>
+              <td mat-cell *matCellDef="let product">
+                <span class="stock-quantity"
+                      [class.low-stock]="product.stockQuantity < 10"
+                      [class.out-of-stock]="product.stockQuantity === 0">
+                  {{product.stockQuantity}}
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Attributes Column -->
+            <ng-container matColumnDef="attributes">
+              <th mat-header-cell *matHeaderCellDef>Attributes</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="attributes-container">
+                  <div *ngIf="product.attributes && product.attributes.length > 0; else noAttributes"
+                       class="attributes-summary"
+                       [matTooltip]="getAttributeDisplay(product)">
+                    <mat-icon class="attributes-icon">tune</mat-icon>
+                    <span class="attributes-count">{{product.attributes.length}} attributes</span>
+                  </div>
+                  <ng-template #noAttributes>
+                    <span class="no-attributes">No attributes</span>
+                  </ng-template>
+                </div>
+              </td>
+            </ng-container>
+
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let product">
+                <mat-chip [class.active-status]="product.isActive"
+                         [class.inactive-status]="!product.isActive">
+                  {{product.isActive ? 'Active' : 'Inactive'}}
+                </mat-chip>
+              </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let product">
+                <div class="action-buttons">
+                  <button mat-icon-button
+                          [routerLink]="['/products', product.productId]"
+                          matTooltip="View Details">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          [routerLink]="['/products', product.productId, 'edit']"
+                          matTooltip="Edit">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          *ngIf="!product.isActive"
+                          (click)="enableProduct(product.productId)"
+                          matTooltip="Enable"
+                          color="primary">
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          *ngIf="product.isActive"
+                          (click)="deleteProduct(product.productId)"
+                          matTooltip="Disable"
+                          color="warn">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+
+        <ng-template #noData>
+          <div class="no-data">
+            <mat-icon>inventory</mat-icon>
+            <h3>No products found</h3>
+            <p *ngIf="searchTerm || selectedCategoryId || selectedStatus !== 'all'; else noProductsAtAll">
+              Try adjusting your filters to see more results.
+            </p>
+            <ng-template #noProductsAtAll>
+              <p>Get started by creating your first product.</p>
+            </ng-template>
+            <div class="no-data-actions">
+              <button mat-raised-button color="primary" routerLink="/products/create">
+                <mat-icon>add</mat-icon>
+                Create Product
+              </button>
+              <button mat-stroked-button (click)="clearFilters()"
+                      *ngIf="searchTerm || selectedCategoryId || selectedStatus !== 'all'">
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading">
+          <p>Loading products...</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>

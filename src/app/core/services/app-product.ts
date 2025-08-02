@@ -7,7 +7,7 @@ import { Product, CreateProductDto, UpdateProductDto, CreateProductAttributeValu
   providedIn: 'root'
 })
 export class AppProduct {
-  private endpoint = 'categories';
+  private endpoint = 'products';
   apiService = inject(ApiService);
 
     getAll(): Observable<Product[]> {

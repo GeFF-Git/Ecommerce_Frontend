@@ -1,113 +1,168 @@
-    <div class="category-list-container">
-      <div class="header">
-        <h2>Categories</h2>
-        <button mat-raised-button color="primary" routerLink="/categories/create">
-          <mat-icon>add</mat-icon>
-          Create Category
+<!-- src/app/features/categories/category-list/category-list.html -->
+<div class="category-list-container">
+  <div class="header">
+    <h2>Categories</h2>
+    <button mat-raised-button color="primary" routerLink="/categories/create">
+      <mat-icon>add</mat-icon>
+      Create Category
+    </button>
+  </div>
+
+  <!-- Filters Section -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-container">
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Search categories...</mat-label>
+          <input matInput [(ngModel)]="searchTerm" (input)="onFilterChange()"
+                 placeholder="Search by name or description">
+          <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="selectedStatus" (selectionChange)="onFilterChange()">
+            <mat-option value="all">All Status</mat-option>
+            <mat-option value="active">Active</mat-option>
+            <mat-option value="inactive">Inactive</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-stroked-button (click)="clearFilters()" class="clear-filters-btn">
+          <mat-icon>clear</mat-icon>
+          Clear Filters
         </button>
       </div>
+    </mat-card-content>
+  </mat-card>
 
-      <mat-card>
-        <mat-card-content>
-          <div *ngIf="categories$ | async as categories; else loading">
-            <div *ngIf="categories.length > 0; else noData">
-              <table mat-table [dataSource]="categories" class="category-table">
-                <!-- Name Column -->
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef>Category Name</th>
-                  <td mat-cell *matCellDef="let category">
-                    <div class="category-name">
-                      <strong>{{category.categoryName}}</strong>
-                      <p class="description">{{category.categoryDescription || 'No description'}}</p>
-                    </div>
-                  </td>
-                </ng-container>
+  <mat-card>
+    <mat-card-content>
+      <div *ngIf="filteredCategories$ | async as categories; else loading">
+        <div *ngIf="categories.length > 0; else noData">
+          <table mat-table [dataSource]="categories" class="category-table">
+            <!-- Name Column -->
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Category Information</th>
+              <td mat-cell *matCellDef="let category">
+                <div class="category-info">
+                  <strong class="category-name">{{category.categoryName}}</strong>
+                  <p class="description" *ngIf="category.categoryDescription">
+                    {{category.categoryDescription}}
+                  </p>
+                  <p class="no-description" *ngIf="!category.categoryDescription">
+                    No description provided
+                  </p>
+                </div>
+              </td>
+            </ng-container>
 
-                <!-- Attributes Column -->
-                <ng-container matColumnDef="attributes">
-                  <th mat-header-cell *matHeaderCellDef>Attributes</th>
-                  <td mat-cell *matCellDef="let category">
-                    <div class="attributes-list">
-                      <mat-chip-set *ngIf="category.attributes.length > 0; else noAttributes">
-                        <mat-chip *ngFor="let attr of category.attributes"
-                                 [class.inactive-chip]="!attr.isActive">
-                          {{attr.attributeDisplayName}}
-                        </mat-chip>
-                      </mat-chip-set>
-                      <ng-template #noAttributes>
-                        <span class="no-attributes">No attributes</span>
-                      </ng-template>
-                    </div>
-                  </td>
-                </ng-container>
+            <!-- Attributes Column -->
+            <ng-container matColumnDef="attributes">
+              <th mat-header-cell *matHeaderCellDef>Attributes</th>
+              <td mat-cell *matCellDef="let category">
+                <div class="attributes-container">
+                  <div *ngIf="getActiveAttributesCount(category) > 0; else noAttributes"
+                       class="attributes-summary"
+                       [matTooltip]="getAttributesDisplay(category)">
+                    <mat-icon class="attributes-icon">tune</mat-icon>
+                    <span class="attributes-count">
+                      {{getActiveAttributesCount(category)}} active
+                      <span *ngIf="getTotalAttributesCount(category) !== getActiveAttributesCount(category)" class="inactive-count">
+                        ({{getTotalAttributesCount(category) - getActiveAttributesCount(category)}} inactive)
+                      </span>
+                    </span>
+                  </div>
+                  <ng-template #noAttributes>
+                    <span class="no-attributes">No attributes</span>
+                  </ng-template>
+                </div>
+              </td>
+            </ng-container>
 
-                <!-- Status Column -->
-                <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef>Status</th>
-                  <td mat-cell *matCellDef="let category">
-                    <mat-chip [class.active-status]="category.isActive"
-                             [class.inactive-status]="!category.isActive">
-                      {{category.isActive ? 'Active' : 'Inactive'}}
-                    </mat-chip>
-                  </td>
-                </ng-container>
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let category">
+                <mat-chip [class.active-status]="category.isActive"
+                         [class.inactive-status]="!category.isActive">
+                  {{category.isActive ? 'Active' : 'Inactive'}}
+                </mat-chip>
+              </td>
+            </ng-container>
 
-                <!-- Actions Column -->
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef>Actions</th>
-                  <td mat-cell *matCellDef="let category">
-                    <div class="action-buttons">
-                      <button mat-icon-button
-                              [routerLink]="['/categories', category.categoryId]"
-                              matTooltip="View Details">
-                        <mat-icon>visibility</mat-icon>
-                      </button>
-                      <button mat-icon-button
-                              [routerLink]="['/categories', category.categoryId, 'edit']"
-                              matTooltip="Edit">
-                        <mat-icon>edit</mat-icon>
-                      </button>
-                      <button mat-icon-button
-                              *ngIf="!category.isActive"
-                              (click)="enableCategory(category.categoryId)"
-                              matTooltip="Enable"
-                              color="primary">
-                        <mat-icon>check_circle</mat-icon>
-                      </button>
-                      <button mat-icon-button
-                              *ngIf="category.isActive"
-                              (click)="deleteCategory(category.categoryId)"
-                              matTooltip="Disable"
-                              color="warn">
-                        <mat-icon>cancel</mat-icon>
-                      </button>
-                    </div>
-                  </td>
-                </ng-container>
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let category">
+                <div class="action-buttons">
+                  <button mat-icon-button
+                          [routerLink]="['/categories', category.categoryId]"
+                          matTooltip="View Details">
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          [routerLink]="['/categories', category.categoryId, 'edit']"
+                          matTooltip="Edit Category">
+                    <mat-icon>edit</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          [routerLink]="['/categories', category.categoryId, 'attributes']"
+                          matTooltip="Manage Attributes">
+                    <mat-icon>tune</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          *ngIf="!category.isActive"
+                          (click)="enableCategory(category.categoryId)"
+                          matTooltip="Enable Category"
+                          color="primary">
+                    <mat-icon>check_circle</mat-icon>
+                  </button>
+                  <button mat-icon-button
+                          *ngIf="category.isActive"
+                          (click)="deleteCategory(category.categoryId)"
+                          matTooltip="Disable Category"
+                          color="warn">
+                    <mat-icon>cancel</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-              </table>
-            </div>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
 
-            <ng-template #noData>
-              <div class="no-data">
-                <mat-icon>category</mat-icon>
-                <h3>No categories found</h3>
-                <p>Get started by creating your first product category.</p>
-                <button mat-raised-button color="primary" routerLink="/categories/create">
-                  <mat-icon>add</mat-icon>
-                  Create Category
-                </button>
-              </div>
+        <ng-template #noData>
+          <div class="no-data">
+            <mat-icon>category</mat-icon>
+            <h3>No categories found</h3>
+            <p *ngIf="searchTerm || selectedStatus !== 'all'; else noCategoriesAtAll">
+              Try adjusting your filters to see more results.
+            </p>
+            <ng-template #noCategoriesAtAll>
+              <p>Get started by creating your first product category.</p>
             </ng-template>
-          </div>
-
-          <ng-template #loading>
-            <div class="loading">
-              <p>Loading categories...</p>
+            <div class="no-data-actions">
+              <button mat-raised-button color="primary" routerLink="/categories/create">
+                <mat-icon>add</mat-icon>
+                Create Category
+              </button>
+              <button mat-stroked-button (click)="clearFilters()"
+                      *ngIf="searchTerm || selectedStatus !== 'all'">
+                Clear Filters
+              </button>
             </div>
-          </ng-template>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          </div>
+        </ng-template>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading">
+          <p>Loading categories...</p>
+        </div>
+      </ng-template>
+    </mat-card-content>
+  </mat-card>
+</div>

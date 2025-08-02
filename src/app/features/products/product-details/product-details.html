@@ -1,0 +1,121 @@
+    <div class="product-details-container">
+      <div class="header">
+        <div class="header-content">
+          <button mat-button routerLink="/products" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Products
+          </button>
+          <div class="header-actions" *ngIf="product">
+            <button mat-stroked-button [routerLink]="['/products', product.productId, 'edit']">
+              <mat-icon>edit</mat-icon>
+              Edit Product
+            </button>
+            <button mat-stroked-button
+                    *ngIf="!product.isActive"
+                    (click)="enableProduct()"
+                    color="primary">
+              <mat-icon>check_circle</mat-icon>
+              Enable
+            </button>
+            <button mat-stroked-button
+                    *ngIf="product.isActive"
+                    (click)="deleteProduct()"
+                    color="warn">
+              <mat-icon>cancel</mat-icon>
+              Disable
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="product$ | async as product; else loading">
+        <!-- Basic Information Card -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title class="product-title">
+              {{product.productName}}
+              <mat-chip [class.active-status]="product.isActive"
+                       [class.inactive-status]="!product.isActive"
+                       class="status-chip">
+                {{product.isActive ? 'Active' : 'Inactive'}}
+              </mat-chip>
+            </mat-card-title>
+            <mat-card-subtitle>{{product.categoryName}}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="product-meta">
+              <div class="meta-item">
+                <mat-icon>qr_code</mat-icon>
+                <div>
+                  <label>SKU</label>
+                  <p>{{product.productSku}}</p>
+                </div>
+              </div>
+              <div class="meta-item">
+                <mat-icon>attach_money</mat-icon>
+                <div>
+                  <label>Sale Price</label>
+                  <p class="price">{{formatPrice(product.salePrice)}}</p>
+                </div>
+              </div>
+              <div class="meta-item">
+                <mat-icon>inventory</mat-icon>
+                <div>
+                  <label>Stock</label>
+                  <p class="stock" [class.low-stock]="product.stockQuantity < 10"
+                     [class.out-of-stock]="product.stockQuantity === 0">
+                    {{product.stockQuantity}} units
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <mat-divider class="section-divider"></mat-divider>
+
+            <div class="description-section" *ngIf="product.productDescription">
+              <h4>Description</h4>
+              <p>{{product.productDescription}}</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Attributes Card -->
+        <mat-card class="attributes-card" *ngIf="product.attributes && product.attributes.length > 0">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>tune</mat-icon>
+              Product Attributes
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="attributes-grid">
+              <div *ngFor="let attr of product.attributes" class="attribute-item">
+                <div class="attribute-content">
+                  <label>{{attr.attributeName}}</label>
+                  <p *ngIf="attr.value; else noValue">{{attr.value}}</p>
+                  <ng-template #noValue>
+                    <p class="no-value">Not specified</p>
+                  </ng-template>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- No Attributes Message -->
+        <mat-card class="no-attributes-card" *ngIf="!product.attributes || product.attributes.length === 0">
+          <mat-card-content>
+            <div class="no-attributes-content">
+              <mat-icon>info</mat-icon>
+              <p>This product doesn't have any custom attributes.</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading-container">
+          <p>Loading product details...</p>
+        </div>
+      </ng-template>
+    </div>

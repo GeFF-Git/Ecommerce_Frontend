@@ -1,0 +1,180 @@
+   <div class="attributes-manager-container">
+      <div class="header">
+        <div class="header-info">
+          <button mat-button [routerLink]="['/categories', categoryId]" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+            Back to Category
+          </button>
+          <div *ngIf="category">
+            <h2>Manage Attributes: {{category.categoryName}}</h2>
+            <p class="subtitle">Define the attributes that products in this category will have</p>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="category$ | async as category; else loading">
+
+        <!-- Existing Attributes -->
+        <mat-card class="existing-attributes-card" *ngIf="category.attributes.length > 0">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>list</mat-icon>
+              Existing Attributes ({{category.attributes.length}})
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <table mat-table [dataSource]="category.attributes" class="attributes-table">
+              <!-- Attribute Name -->
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Attribute</th>
+                <td mat-cell *matCellDef="let attr">
+                  <div class="attribute-info">
+                    <strong>{{attr.attributeDisplayName}}</strong>
+                    <small>{{attr.attributeName}}</small>
+                  </div>
+                </td>
+              </ng-container>
+
+              <!-- Data Type -->
+              <ng-container matColumnDef="dataType">
+                <th mat-header-cell *matHeaderCellDef>Data Type</th>
+                <td mat-cell *matCellDef="let attr">
+                  <mat-chip class="data-type-chip">{{getDataTypeName(attr.dataTypeId)}}</mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Status -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let attr">
+                  <mat-chip [class.active-status]="attr.isActive"
+                           [class.inactive-status]="!attr.isActive">
+                    {{attr.isActive ? 'Active' : 'Inactive'}}
+                  </mat-chip>
+                </td>
+              </ng-container>
+
+              <!-- Actions -->
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let attr">
+                  <div class="attribute-actions">
+                    <button mat-icon-button
+                            (click)="editAttribute(attr)"
+                            matTooltip="Edit Attribute">
+                      <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                            *ngIf="!attr.isActive"
+                            (click)="enableAttribute(attr.attributeId)"
+                            matTooltip="Enable Attribute"
+                            color="primary">
+                      <mat-icon>check_circle</mat-icon>
+                    </button>
+                    <button mat-icon-button
+                            *ngIf="attr.isActive"
+                            (click)="deleteAttribute(attr.attributeId)"
+                            matTooltip="Disable Attribute"
+                            color="warn">
+                      <mat-icon>cancel</mat-icon>
+                    </button>
+                  </div>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            </table>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Add New Attribute -->
+        <mat-card class="add-attribute-card">
+          <mat-card-header>
+            <mat-card-title>
+              <mat-icon>add</mat-icon>
+              Add New Attribute
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <form [formGroup]="attributeForm" (ngSubmit)="onSubmitAttribute()">
+              <div class="attribute-form-row">
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Attribute Name</mat-label>
+                  <input matInput formControlName="attributeName"
+                         placeholder="e.g., screen_size, color, material">
+                  <mat-hint>Use lowercase with underscores (no spaces)</mat-hint>
+                  <mat-error *ngIf="attributeForm.get('attributeName')?.hasError('required')">
+                    Attribute name is required
+                  </mat-error>
+                  <mat-error *ngIf="attributeForm.get('attributeName')?.hasError('pattern')">
+                    Use lowercase letters, numbers, and underscores only
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Display Name</mat-label>
+                  <input matInput formControlName="attributeDisplayName"
+                         placeholder="e.g., Screen Size, Color, Material">
+                  <mat-hint>User-friendly name for display</mat-hint>
+                  <mat-error *ngIf="attributeForm.get('attributeDisplayName')?.hasError('required')">
+                    Display name is required
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="flex-1">
+                  <mat-label>Data Type</mat-label>
+                  <mat-select formControlName="dataTypeId">
+                    <mat-option [value]="1">String (Text)</mat-option>
+                    <mat-option [value]="2">Integer (Whole Number)</mat-option>
+                    <mat-option [value]="3">Decimal (Number with decimals)</mat-option>
+                    <mat-option [value]="4">Boolean (True/False)</mat-option>
+                    <mat-option [value]="5">Date</mat-option>
+                    <mat-option [value]="6">JSON (Complex Data)</mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="attributeForm.get('dataTypeId')?.hasError('required')">
+                    Data type is required
+                  </mat-error>
+                </mat-form-field>
+
+                <div class="form-actions">
+                  <button type="submit" mat-raised-button color="primary"
+                          [disabled]="attributeForm.invalid || isSubmitting">
+                    <mat-icon *ngIf="isSubmitting" class="spinner">refresh</mat-icon>
+                    {{isEditingAttribute ? 'Update' : 'Add'}} Attribute
+                  </button>
+                  <button type="button" mat-button
+                          *ngIf="isEditingAttribute"
+                          (click)="cancelEdit()">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- No Attributes Message -->
+        <mat-card *ngIf="category.attributes.length === 0" class="no-attributes-card">
+          <mat-card-content>
+            <div class="no-attributes-content">
+              <mat-icon>info</mat-icon>
+              <h3>No Attributes Yet</h3>
+              <p>Add attributes to define what information products in this category should have.</p>
+              <p class="examples">
+                <strong>Examples:</strong><br>
+                • For Smartphones: OS, RAM, Storage, Camera<br>
+                • For Watches: Dial Size, Strap Material, Movement Type<br>
+                • For Dresses: Size, Color, Material, Pattern
+              </p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading-container">
+          <p>Loading category details...</p>
+        </div>
+      </ng-template>
+    </div>

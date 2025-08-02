@@ -197,4 +197,104 @@ export class ValidationService {
       { value: 'false', label: 'False' }
     ];
   }
+
+  static skuValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+
+    const value = control.value.toString().toUpperCase();
+    if (!/^[A-Z0-9-_]+$/.test(value)) {
+      return { invalidSku: { value: control.value, message: 'SKU should contain only uppercase letters, numbers, hyphens, and underscores' } };
+    }
+
+    if (value.length < 3 || value.length > 20) {
+      return { invalidSku: { value: control.value, message: 'SKU should be between 3 and 20 characters long' } };
+    }
+
+    return null;
+  };
+}
+
+static productNameValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+
+    const value = control.value.toString().trim();
+    if (value.length < 2) {
+      return { invalidProductName: { value: control.value, message: 'Product name must be at least 2 characters long' } };
+    }
+
+    if (value.length > 200) {
+      return { invalidProductName: { value: control.value, message: 'Product name cannot exceed 200 characters' } };
+    }
+
+    // Check for special characters that might cause issues
+    if (/[<>{}]/.test(value)) {
+      return { invalidProductName: { value: control.value, message: 'Product name contains invalid characters' } };
+    }
+
+    return null;
+  };
+}
+
+static brandValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    if (!control.value) return null;
+
+    const value = control.value.toString().trim();
+    if (value.length < 1) {
+      return { invalidBrand: { value: control.value, message: 'Brand name is required' } };
+    }
+
+    if (value.length > 100) {
+      return { invalidBrand: { value: control.value, message: 'Brand name cannot exceed 100 characters' } };
+    }
+
+    return null;
+  };
+}
+
+static formatCurrency(amount: number, currency: string = 'USD'): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
+static formatNumber(num: number, options?: Intl.NumberFormatOptions): string {
+  return new Intl.NumberFormat('en-US', options).format(num);
+}
+
+static validateJsonString(jsonString: string): { isValid: boolean; error?: string } {
+  try {
+    JSON.parse(jsonString);
+    return { isValid: true };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: error instanceof Error ? error.message : 'Invalid JSON format'
+    };
+  }
+}
+
+static getDataTypeValidationMessage(dataTypeName: string): string {
+  switch (dataTypeName) {
+    case DataTypeName.String:
+      return 'Enter text value';
+    case DataTypeName.Integer:
+      return 'Enter a whole number (e.g., 1, 10, 100)';
+    case DataTypeName.Decimal:
+      return 'Enter a decimal number (e.g., 1.5, 10.99)';
+    case DataTypeName.Boolean:
+      return 'Select true or false';
+    case DataTypeName.Date:
+      return 'Select a valid date';
+    case DataTypeName.JSON:
+      return 'Enter valid JSON format (e.g., {"key": "value"})';
+    default:
+      return 'Enter a valid value';
+  }
+}
 }
