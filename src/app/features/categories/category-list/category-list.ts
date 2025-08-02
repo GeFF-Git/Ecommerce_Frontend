@@ -75,6 +75,7 @@ export class CategoryList implements OnInit {
 
   loadCategories(): void {
     this.categories$ = this.categoryService.getAll();
+    this.setupFilters();
   }
 
   setupFilters(): void {

@@ -52,3 +52,9 @@
     .active mat-icon {
       color: #3f51b5 !important;
     }
+
+    mat-nav-list {
+      display: flex;
+      flex-direction: column;
+      row-gap: 0.5rem;
+    }

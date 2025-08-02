@@ -15,6 +15,7 @@ export class AppProduct {
   }
 
   getById(id: number): Observable<Product> {
+    console.log(this.endpoint);
     return this.apiService.get<Product>(`${this.endpoint}/${id}`);
   }
 

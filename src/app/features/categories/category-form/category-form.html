@@ -1,112 +1,271 @@
-   <div class="form-container">
-      <div class="header">
-        <h2>{{isEditMode ? 'Edit Category' : 'Create New Category'}}</h2>
-        <button mat-button routerLink="/categories">
-          <mat-icon>arrow_back</mat-icon>
-          Back to Categories
-        </button>
-      </div>
+<!-- src/app/features/categories/category-form/category-form.html -->
+<div class="form-container">
+  <div class="header">
+    <h2>{{isEditMode ? 'Edit Category' : 'Create New Category'}}</h2>
+    <button mat-button routerLink="/categories">
+      <mat-icon>arrow_back</mat-icon>
+      Back to Categories
+    </button>
+  </div>
 
-      <mat-card>
-        <mat-card-content>
-          <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
-            <!-- Basic Information -->
-            <div class="form-section">
-              <h3>Basic Information</h3>
+  <mat-card>
+    <mat-card-content>
+      <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()">
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Category Name</mat-label>
-                <input matInput formControlName="categoryName" required>
-                <mat-error *ngIf="categoryForm.get('categoryName')?.hasError('required')">
-                  Category name is required
-                </mat-error>
-              </mat-form-field>
+        <!-- Basic Information -->
+        <div class="form-section">
+          <h3>Basic Information</h3>
 
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Description</mat-label>
-                <textarea matInput formControlName="categoryDescription" rows="3"></textarea>
-              </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Category Name *</mat-label>
+            <input matInput formControlName="categoryName"
+                   placeholder="e.g., Smartphones, Watches, Dresses"
+                   required>
+            <mat-icon matSuffix>category</mat-icon>
+            <mat-error *ngIf="isFieldInvalid('categoryName')">
+              {{getFieldError('categoryName')}}
+            </mat-error>
+            <mat-hint>Enter a unique name for this product category</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="categoryDescription"
+                      rows="3"
+                      placeholder="Describe what types of products belong to this category...">
+            </textarea>
+            <mat-icon matSuffix>description</mat-icon>
+            <mat-error *ngIf="isFieldInvalid('categoryDescription')">
+              {{getFieldError('categoryDescription')}}
+            </mat-error>
+            <mat-hint>
+              {{(categoryForm.get('categoryDescription')?.value?.length || 0)}}/500 characters
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Attributes Section -->
+        <div class="form-section" *ngIf="!isEditMode">
+          <div class="section-header">
+            <div class="section-title">
+              <h3>Category Attributes</h3>
+              <p class="section-subtitle">
+                Define custom attributes that products in this category will have.
+                You can always add more attributes later.
+              </p>
             </div>
+            <button type="button" mat-raised-button color="accent"
+                    (click)="addAttribute()"
+                    [disabled]="isSubmitting">
+              <mat-icon>add</mat-icon>
+              Add Attribute
+            </button>
+          </div>
 
-            <mat-divider></mat-divider>
+          <div formArrayName="attributes" class="attributes-list">
+            <div *ngFor="let attribute of attributes.controls; let i = index"
+                 [formGroupName]="i" class="attribute-form">
+              <mat-card class="attribute-card">
+                <mat-card-header>
+                  <mat-card-title>
+                    <div class="attribute-header">
+                      <span class="attribute-number">Attribute {{i + 1}}</span>
+                      <button type="button" mat-icon-button color="warn"
+                              (click)="removeAttribute(i)"
+                              matTooltip="Remove this attribute"
+                              [disabled]="isSubmitting">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  </mat-card-title>
+                </mat-card-header>
 
-            <!-- Attributes Section -->
-            <div class="form-section" *ngIf="!isEditMode">
-              <div class="section-header">
-                <h3>Category Attributes</h3>
-                <button type="button" mat-raised-button color="accent"
-                        (click)="addAttribute()">
-                  <mat-icon>add</mat-icon>
-                  Add Attribute
-                </button>
-              </div>
+                <mat-card-content>
+                  <div class="attribute-fields">
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Attribute Name *</mat-label>
+                      <input matInput formControlName="attributeName"
+                             placeholder="e.g., screenSize, color, weight"
+                             required>
+                      <mat-icon matSuffix>label</mat-icon>
+                      <mat-error *ngIf="attribute.get('attributeName')?.errors && attribute.get('attributeName')?.touched">
+                        <span *ngIf="attribute.get('attributeName')?.errors?.['required']">
+                          Attribute name is required
+                        </span>
+                        <span *ngIf="attribute.get('attributeName')?.errors?.['minlength']">
+                          Must be at least 2 characters
+                        </span>
+                        <span *ngIf="attribute.get('attributeName')?.errors?.['maxlength']">
+                          Cannot exceed 50 characters
+                        </span>
+                        <span *ngIf="attribute.get('attributeName')?.errors?.['pattern']">
+                          Must start with a letter and contain only letters, numbers, and underscores
+                        </span>
+                      </mat-error>
+                      <mat-hint>Technical name (no spaces, camelCase preferred)</mat-hint>
+                    </mat-form-field>
 
-              <div formArrayName="attributes" class="attributes-list">
-                <div *ngFor="let attribute of attributes.controls; let i = index"
-                     [formGroupName]="i" class="attribute-form">
-                  <mat-card class="attribute-card">
-                    <mat-card-content>
-                      <div class="attribute-header">
-                        <h4>Attribute {{i + 1}}</h4>
-                        <button type="button" mat-icon-button color="warn"
-                                (click)="removeAttribute(i)">
-                          <mat-icon>delete</mat-icon>
-                        </button>
-                      </div>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Display Name *</mat-label>
+                      <input matInput formControlName="attributeDisplayName"
+                             placeholder="e.g., Screen Size, Color, Weight"
+                             required>
+                      <mat-icon matSuffix>visibility</mat-icon>
+                      <mat-error *ngIf="attribute.get('attributeDisplayName')?.errors && attribute.get('attributeDisplayName')?.touched">
+                        <span *ngIf="attribute.get('attributeDisplayName')?.errors?.['required']">
+                          Display name is required
+                        </span>
+                        <span *ngIf="attribute.get('attributeDisplayName')?.errors?.['minlength']">
+                          Must be at least 2 characters
+                        </span>
+                        <span *ngIf="attribute.get('attributeDisplayName')?.errors?.['maxlength']">
+                          Cannot exceed 100 characters
+                        </span>
+                      </mat-error>
+                      <mat-hint>User-friendly name shown in forms</mat-hint>
+                    </mat-form-field>
 
-                      <div class="attribute-fields">
-                        <mat-form-field appearance="outline">
-                          <mat-label>Attribute Name</mat-label>
-                          <input matInput formControlName="attributeName" required>
-                          <mat-error *ngIf="attribute.get('attributeName')?.hasError('required')">
-                            Attribute name is required
-                          </mat-error>
-                        </mat-form-field>
+                    <mat-form-field appearance="outline" class="flex-1">
+                      <mat-label>Data Type *</mat-label>
+                      <mat-select formControlName="dataTypeId" required>
+                        <mat-option [value]="1">
+                          <mat-icon>text_fields</mat-icon>
+                          String
+                        </mat-option>
+                        <mat-option [value]="2">
+                          <mat-icon>123</mat-icon>
+                          Integer
+                        </mat-option>
+                        <mat-option [value]="3">
+                          <mat-icon>functions</mat-icon>
+                          Decimal
+                        </mat-option>
+                        <mat-option [value]="4">
+                          <mat-icon>check_box</mat-icon>
+                          Boolean
+                        </mat-option>
+                        <mat-option [value]="5">
+                          <mat-icon>event</mat-icon>
+                          Date
+                        </mat-option>
+                        <mat-option [value]="6">
+                          <mat-icon>code</mat-icon>
+                          JSON
+                        </mat-option>
+                      </mat-select>
+                      <mat-icon matSuffix>data_usage</mat-icon>
+                      <mat-error *ngIf="attribute.get('dataTypeId')?.errors && attribute.get('dataTypeId')?.touched">
+                        Data type is required
+                      </mat-error>
+                      <mat-hint>
+                        Selected: {{getDataTypeName(attribute.get('dataTypeId')?.value)}}
+                      </mat-hint>
+                    </mat-form-field>
+                  </div>
 
-                        <mat-form-field appearance="outline">
-                          <mat-label>Display Name</mat-label>
-                          <input matInput formControlName="attributeDisplayName" required>
-                          <mat-error *ngIf="attribute.get('attributeDisplayName')?.hasError('required')">
-                            Display name is required
-                          </mat-error>
-                        </mat-form-field>
-
-                        <mat-form-field appearance="outline">
-                          <mat-label>Data Type</mat-label>
-                          <mat-select formControlName="dataTypeId" required>
-                            <mat-option [value]="1">String</mat-option>
-                            <mat-option [value]="2">Integer</mat-option>
-                            <mat-option [value]="3">Decimal</mat-option>
-                            <mat-option [value]="4">Boolean</mat-option>
-                            <mat-option [value]="5">Date</mat-option>
-                            <mat-option [value]="6">JSON</mat-option>
-                          </mat-select>
-                          <mat-error *ngIf="attribute.get('dataTypeId')?.hasError('required')">
-                            Data type is required
-                          </mat-error>
-                        </mat-form-field>
-                      </div>
-                    </mat-card-content>
-                  </mat-card>
-                </div>
-              </div>
-
-              <div *ngIf="attributes.length === 0" class="no-attributes">
-                <p>No attributes added yet. Click "Add Attribute" to create category-specific attributes.</p>
-              </div>
+                  <!-- Data Type Information -->
+                  <div class="data-type-info" *ngIf="attribute.get('dataTypeId')?.value">
+                    <mat-icon class="info-icon">info</mat-icon>
+                    <span class="info-text">
+                      <ng-container [ngSwitch]="attribute.get('dataTypeId')?.value">
+                        <span *ngSwitchCase="1">Text values like "Red", "Large", "Cotton"</span>
+                        <span *ngSwitchCase="2">Whole numbers like 1, 10, 100</span>
+                        <span *ngSwitchCase="3">Decimal numbers like 1.5, 10.99, 100.25</span>
+                        <span *ngSwitchCase="4">True/False values</span>
+                        <span *ngSwitchCase="5">Date values like 2024-01-15</span>
+                        <span *ngSwitchCase="6">Complex data in JSON format</span>
+                      </ng-container>
+                    </span>
+                  </div>
+                </mat-card-content>
+              </mat-card>
             </div>
+          </div>
 
-            <!-- Form Actions -->
-            <div class="form-actions">
-              <button type="button" mat-button routerLink="/categories">
-                Cancel
+          <!-- No Attributes State -->
+          <div *ngIf="attributes.length === 0" class="no-attributes">
+            <mat-icon>tune</mat-icon>
+            <h4>No attributes added yet</h4>
+            <p>
+              Attributes define the specific properties that products in this category will have.
+              For example, smartphones might have attributes for "Screen Size", "RAM", and "Storage".
+            </p>
+            <button type="button" mat-raised-button color="primary"
+                    (click)="addAttribute()"
+                    [disabled]="isSubmitting">
+              <mat-icon>add</mat-icon>
+              Add Your First Attribute
+            </button>
+          </div>
+        </div>
+
+        <!-- Edit Mode Notice -->
+        <div class="form-section" *ngIf="isEditMode">
+          <div class="edit-mode-notice">
+            <mat-icon>info</mat-icon>
+            <div class="notice-content">
+              <h4>Editing Category Information</h4>
+              <p>
+                You can update the category name and description here.
+                To manage category attributes, use the
+                <strong>"Manage Attributes"</strong> button from the category details page.
+              </p>
+              <button type="button" mat-stroked-button
+                      [routerLink]="['/categories', categoryId, 'attributes']"
+                      *ngIf="categoryId">
+                <mat-icon>tune</mat-icon>
+                Manage Attributes
               </button>
-              <button type="submit" mat-raised-button color="primary"
-                [disabled]="categoryForm.invalid || isSubmitting">
-                {{isSubmitting ? 'Saving...' : (isEditMode ? 'Update' : 'Create')}}
-              </button>
             </div>
-          </form>
-        </mat-card-content>
-      </mat-card>
-    </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button type="button" mat-button
+                  routerLink="/categories"
+                  [disabled]="isSubmitting">
+            Cancel
+          </button>
+
+          <button type="submit" mat-raised-button color="primary"
+                  [disabled]="categoryForm.invalid || isSubmitting">
+            <mat-icon *ngIf="isSubmitting" class="spinner">refresh</mat-icon>
+            <mat-icon *ngIf="!isSubmitting">{{isEditMode ? 'update' : 'add'}}</mat-icon>
+            {{isSubmitting ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Category' : 'Create Category')}}
+          </button>
+        </div>
+
+        <!-- Form Summary -->
+        <div class="form-summary" *ngIf="!isEditMode && attributes.length > 0">
+          <mat-divider></mat-divider>
+          <div class="summary-content">
+            <h4>Summary</h4>
+            <p>
+              <strong>Category:</strong> {{categoryForm.get('categoryName')?.value || 'Unnamed Category'}}
+            </p>
+            <p>
+              <strong>Attributes:</strong> {{attributes.length}} attribute(s) defined
+            </p>
+            <div class="attributes-preview" *ngIf="attributes.length > 0">
+              <mat-chip-set>
+                <mat-chip *ngFor="let attr of attributes.controls">
+                  {{attr.get('attributeDisplayName')?.value || 'Unnamed'}}
+                  ({{getDataTypeName(attr.get('dataTypeId')?.value)}})
+                </mat-chip>
+              </mat-chip-set>
+            </div>
+          </div>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Unsaved Changes Warning -->
+  <div class="unsaved-warning" *ngIf="hasUnsavedChanges()">
+    <mat-icon>warning</mat-icon>
+    <span>You have unsaved changes</span>
+  </div>
+</div>

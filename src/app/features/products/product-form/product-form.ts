@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
@@ -118,6 +118,7 @@ export class ProductForm implements OnInit {
     if (this.productId) {
       this.productService.getById(this.productId).subscribe({
         next: (product) => {
+          // First set the basic product details
           this.productForm.patchValue({
             categoryId: product.categoryId,
             productSku: product.productSku,
@@ -132,6 +133,7 @@ export class ProductForm implements OnInit {
           // Load category and then set attributes
           this.categoryService.getById(product.categoryId).subscribe(category => {
             this.selectedCategory = category;
+            console.log('Product Attributes:', product.attributes); // Debug log
             this.buildAttributeFields(category.attributes, product.attributes);
           });
         },
@@ -166,21 +168,36 @@ export class ProductForm implements OnInit {
 
     // Only include active attributes
     const activeAttributes = categoryAttributes.filter(attr => attr.isActive);
-
-    activeAttributes.forEach(attr => {
-      const existingValue = existingValues?.find(v => v.attributeName === attr.attributeName);
+    console.log('Active Attributes:', activeAttributes, existingValues); // Debug log
+    activeAttributes.forEach((attr, index) => {
+      // Find existing value for this attribute
+      // const existingValue = existingValues?.find(v => v.attributeName === attr.attributeName);
+      // console.log(existingValue); // Debug log
       const validators = ValidationService.getValidatorsByDataType(this.getDataTypeName(attr.dataTypeId));
 
+      // Create the form group with the correct initial value
       const attributeGroup = this.fb.group({
         attributeId: [attr.attributeId],
         attributeName: [attr.attributeName],
         attributeDisplayName: [attr.attributeDisplayName],
         dataTypeId: [attr.dataTypeId],
-        value: [existingValue?.value || '', validators]
+        value: [existingValues ? existingValues[index].value : ''] // Set initial value here
       });
+
+      // Add validators after setting the value
+      attributeGroup.get('value')?.setValidators(validators);
+      attributeGroup.get('value')?.updateValueAndValidity();
 
       this.attributes.push(attributeGroup);
     });
+
+    // Update the form
+    this.attributes.updateValueAndValidity();
+    this.productForm.updateValueAndValidity();
+
+    // For debugging
+    console.log('Form Values:', this.productForm.value);
+    console.log('Attributes Array:', this.attributes.value);
   }
 
   getDataTypeName(dataTypeId: number): string {
@@ -195,7 +212,8 @@ export class ProductForm implements OnInit {
     return dataTypes[dataTypeId as keyof typeof dataTypes] || DataTypeName.String;
   }
 
-  getInputType(dataTypeId: number): string {
+  getInputType(dataTypeId: number, attribute: AbstractControl): string {
+    // console.log(attribute);
     return ValidationService.getInputType(this.getDataTypeName(dataTypeId));
   }
 
