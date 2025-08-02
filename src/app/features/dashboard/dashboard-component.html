@@ -1,0 +1,158 @@
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p class="subtitle">Welcome to your eCommerce Product Management System</p>
+      </div>
+
+      <div *ngIf="dashboardStats$ | async as stats; else loading" class="dashboard-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <mat-card class="stat-card categories-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <h3>{{stats.totalCategories}}</h3>
+                  <p>Total Categories</p>
+                </div>
+                <mat-icon class="stat-icon">category</mat-icon>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card products-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <h3>{{stats.totalProducts}}</h3>
+                  <p>Total Products</p>
+                </div>
+                <mat-icon class="stat-icon">inventory</mat-icon>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card active-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <h3>{{stats.activeProducts}}</h3>
+                  <p>Active Products</p>
+                </div>
+                <mat-icon class="stat-icon">check_circle</mat-icon>
+              </div>
+            </mat-card-content>
+          </mat-card>
+
+          <mat-card class="stat-card inactive-card">
+            <mat-card-content>
+              <div class="stat-content">
+                <div class="stat-info">
+                  <h3>{{stats.inactiveProducts}}</h3>
+                  <p>Inactive Products</p>
+                </div>
+                <mat-icon class="stat-icon">cancel</mat-icon>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Quick Actions</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+              <div class="actions-grid">
+                <button mat-raised-button color="primary" routerLink="/categories/create">
+                  <mat-icon>add</mat-icon>
+                  Create Category
+                </button>
+                <button mat-raised-button color="accent" routerLink="/products/create">
+                  <mat-icon>add</mat-icon>
+                  Create Product
+                </button>
+                <button mat-stroked-button routerLink="/categories">
+                  <mat-icon>category</mat-icon>
+                  Manage Categories
+                </button>
+                <button mat-stroked-button routerLink="/products">
+                  <mat-icon>inventory</mat-icon>
+                  Manage Products
+                </button>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+
+        <!-- Recent Items -->
+        <div class="recent-items">
+          <div class="recent-categories">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Categories</mat-card-title>
+                <button mat-icon-button routerLink="/categories">
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="stats.recentCategories.length > 0; else noCategories" class="recent-list">
+                  <div *ngFor="let category of stats.recentCategories" class="recent-item">
+                    <div class="item-info">
+                      <h4>{{category.categoryName}}</h4>
+                      <p>{{category.categoryDescription || 'No description'}}</p>
+                      <span class="item-status" [class.active]="category.isActive" [class.inactive]="!category.isActive">
+                        {{category.isActive ? 'Active' : 'Inactive'}}
+                      </span>
+                    </div>
+                    <mat-icon class="item-icon">category</mat-icon>
+                  </div>
+                </div>
+                <ng-template #noCategories>
+                  <p class="no-data">No categories found. <a routerLink="/categories/create">Create your first category</a></p>
+                </ng-template>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          <div class="recent-products">
+            <mat-card>
+              <mat-card-header>
+                <mat-card-title>Recent Products</mat-card-title>
+                <button mat-icon-button routerLink="/products">
+                  <mat-icon>arrow_forward</mat-icon>
+                </button>
+              </mat-card-header>
+              <mat-card-content>
+                <div *ngIf="stats.recentProducts.length > 0; else noProducts" class="recent-list">
+                  <div *ngFor="let product of stats.recentProducts" class="recent-item">
+                    <div class="item-info">
+                      <h4>{{product.productName}}</h4>
+                      <p>{{product.categoryName}} • SKU: {{product.productSku}}</p>
+                      <div class="product-details">
+                        <span class="price">\${{product.salePrice}}</span>
+                        <span class="stock">Stock: {{product.stockQuantity}}</span>
+                        <span class="item-status" [class.active]="product.isActive" [class.inactive]="!product.isActive">
+                          {{product.isActive ? 'Active' : 'Inactive'}}
+                        </span>
+                      </div>
+                    </div>
+                    <mat-icon class="item-icon">inventory</mat-icon>
+                  </div>
+                </div>
+                <ng-template #noProducts>
+                  <p class="no-data">No products found. <a routerLink="/products/create">Create your first product</a></p>
+                </ng-template>
+              </mat-card-content>
+            </mat-card>
+          </div>
+        </div>
+      </div>
+
+      <ng-template #loading>
+        <div class="loading-container">
+          <mat-spinner></mat-spinner>
+          <p>Loading dashboard...</p>
+        </div>
+      </ng-template>
+    </div>
