@@ -25,8 +25,8 @@ export class AppDashboard {
           totalProducts: products.length,
           activeProducts: activeProducts.length,
           inactiveProducts: inactiveProducts.length,
-          recentProducts: products.slice(0, 5),
-          recentCategories: categories.slice(0, 5)
+          recentProducts: products.slice(-5).reverse(),
+          recentCategories: categories.slice(-5).reverse()
         };
       })
     );
