@@ -1,4 +1,3 @@
-/* src/app/features/products/product-list/product-list.scss */
 .product-list-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -99,7 +98,7 @@
 }
 
 .price-info {
-  text-align: right;
+  text-align: left;
 }
 
 .sale-price {
@@ -175,14 +174,6 @@
 .no-data {
   text-align: center;
   padding: 4rem 2rem;
-}
-
-.no-data mat-icon {
-  font-size: 4rem;
-  width: 4rem;
-  height: 4rem;
-  color: #ccc;
-  margin-bottom: 1rem;
 }
 
 .no-data h3 {

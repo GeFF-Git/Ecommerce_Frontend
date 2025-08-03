@@ -1,4 +1,3 @@
-// src/app/core/models/product.model.ts
 export interface Product {
   productId: number;
   categoryId: number;
@@ -6,21 +5,21 @@ export interface Product {
   productSku: string;
   productName: string;
   productDescription?: string;
-  brand?: string; // Added missing field
+  brand?: string;
   salePrice: number;
-  costPrice?: number; // Added missing field
+  costPrice?: number;
   stockQuantity: number;
   isActive: boolean;
-  createdDate?: string; // Added for completeness
-  modifiedDate?: string; // Added for completeness
+  createdDate?: string;
+  modifiedDate?: string;
   attributes: ProductAttributeValue[];
 }
 
 export interface ProductAttributeValue {
-  attributeId?: number; // Added for backend mapping
+  attributeId?: number;
   attributeName: string;
-  attributeDisplayName?: string; // Added for better UX
-  dataTypeId?: number; // Added for validation
+  attributeDisplayName?: string;
+  dataTypeId?: number;
   value?: string;
 }
 
@@ -31,7 +30,7 @@ export interface CreateProductDto {
   brand: string;
   productDescription?: string;
   salePrice: number;
-  costPrice?: number; // Added missing field
+  costPrice?: number;
   stockQuantity: number;
   attributes?: CreateProductAttributeValueDto[];
 }
@@ -44,10 +43,10 @@ export interface CreateProductAttributeValueDto {
 export interface UpdateProductDto {
   productSku: string;
   productName: string;
-  brand?: string; // Added missing field
+  brand?: string;
   productDescription?: string;
   salePrice: number;
-  costPrice?: number; // Added missing field
+  costPrice?: number;
   stockQuantity: number;
 }
 
@@ -76,7 +75,6 @@ export interface ProductSummary {
   isActive: boolean;
 }
 
-// Enums for better type safety
 export enum ProductStatus {
   Active = 'active',
   Inactive = 'inactive'
@@ -88,7 +86,6 @@ export enum StockLevel {
   InStock = 'in_stock'
 }
 
-// Helper functions
 export class ProductHelper {
   static getStockLevel(quantity: number): StockLevel {
     if (quantity === 0) return StockLevel.OutOfStock;
@@ -97,10 +94,10 @@ export class ProductHelper {
   }
 
   static formatPrice(price: number, currency: string = 'USD'): string {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: currency
-    }).format(price);
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR'
+  }).format(price);
   }
 
   static generateSKU(categoryName: string): string {
