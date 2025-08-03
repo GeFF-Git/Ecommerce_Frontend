@@ -1,3 +1,6 @@
+    .mat-mdc-card-header{
+      justify-content: space-between !important;
+    }
     .category-details-container {
       max-width: 1000px;
       margin: 0 auto;
@@ -162,17 +165,14 @@
     }
 
     .no-attributes-content, .no-products {
-      text-align: center;
-      padding: 2rem;
-      color: #666;
-    }
-
-    .no-attributes-content mat-icon, .no-products mat-icon {
-      font-size: 2rem;
-      width: 2rem;
-      height: 2rem;
-      margin-bottom: 1rem;
-      color: #999;
+    text-align: center;
+    padding: 2rem;
+    gap: 0.5rem;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
     }
 
     .loading-container {
