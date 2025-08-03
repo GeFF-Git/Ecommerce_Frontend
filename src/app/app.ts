@@ -22,7 +22,7 @@ import { RouterModule, RouterOutlet } from '@angular/router';
   styleUrl: './app.scss'
 })
 export class App {
-  protected readonly title = signal('Ecommerce_Frontend');
+  protected readonly title = signal('Ecommerce Product Management');
   sidenav = viewChild<MatSidenav>('sidenav');
     toggleSidenav() {
       if (this.sidenav()) {

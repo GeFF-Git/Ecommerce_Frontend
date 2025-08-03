@@ -93,10 +93,10 @@ export class ProductHelper {
     return StockLevel.InStock;
   }
 
-  static formatPrice(price: number, currency: string = 'USD'): string {
+  static formatPrice(price: number, currency: string = 'INR'): string {
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'INR'
+    currency: currency
   }).format(price);
   }
 

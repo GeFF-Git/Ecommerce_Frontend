@@ -133,10 +133,6 @@ export class ValidationService {
         return { invalidPrice: { value: control.value, message: 'Price must be a positive number' } };
       }
 
-      if (value > 999999.99) {
-        return { invalidPrice: { value: control.value, message: 'Price cannot exceed 999,999.99' } };
-      }
-
       return null;
     };
   }

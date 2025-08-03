@@ -130,7 +130,7 @@
                       <h4>{{product.productName}}</h4>
                       <p>{{product.categoryName}} • SKU: {{product.productSku}}</p>
                       <div class="product-details">
-                        <span class="price">${{product.salePrice}}</span>
+                        <span class="price">₹{{product.salePrice}}</span>
                         <span class="stock">Stock: {{product.stockQuantity}}</span>
                         <span class="item-status" [class.active]="product.isActive" [class.inactive]="!product.isActive">
                           {{product.isActive ? 'Active' : 'Inactive'}}

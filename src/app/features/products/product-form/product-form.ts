@@ -12,7 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
 import { Category, CategoryAttribute } from '../../../core/models/category.model';
-import { CreateProductDto, UpdateProductDto, ProductHelper } from '../../../core/models/product.model';
+import { CreateProductDto, UpdateProductDto, ProductHelper, ProductAttributeValue } from '../../../core/models/product.model';
 import { AppCategory } from '../../../core/services/app-category';
 import { AppProduct } from '../../../core/services/app-product';
 import { ValidationService } from '../../../shared/services/validation-service';
@@ -152,9 +152,9 @@ export class ProductForm implements OnInit {
         this.buildAttributeFields(category.attributes);
 
         // Auto-generate SKU if creating new product
-        if (!this.isEditMode && !this.productForm.get('productSku')?.value) {
+        // if (!this.isEditMode) {
           this.generateSKU();
-        }
+        // }
       },
       error: (error) => {
         this.snackBar.open('Error loading category: ' + error, 'Close', { duration: 5000 });
@@ -162,17 +162,16 @@ export class ProductForm implements OnInit {
     });
   }
 
-  buildAttributeFields(categoryAttributes: CategoryAttribute[], existingValues?: any[]): void {
+  buildAttributeFields(categoryAttributes: CategoryAttribute[], existingValues?: ProductAttributeValue[]): void {
     // Clear existing attributes
     this.attributes.clear();
 
     // Only include active attributes
     const activeAttributes = categoryAttributes.filter(attr => attr.isActive);
-    console.log('Active Attributes:', activeAttributes, existingValues); // Debug log
-    activeAttributes.forEach((attr, index) => {
+
+    activeAttributes.forEach(attr => {
       // Find existing value for this attribute
-      // const existingValue = existingValues?.find(v => v.attributeName === attr.attributeName);
-      // console.log(existingValue); // Debug log
+      const existingValue = existingValues?.find(v => v.attributeName === attr.attributeName)?.value || '';
       const validators = ValidationService.getValidatorsByDataType(this.getDataTypeName(attr.dataTypeId));
 
       // Create the form group with the correct initial value
@@ -181,7 +180,7 @@ export class ProductForm implements OnInit {
         attributeName: [attr.attributeName],
         attributeDisplayName: [attr.attributeDisplayName],
         dataTypeId: [attr.dataTypeId],
-        value: [existingValues ? existingValues[index].value : ''] // Set initial value here
+        value: [existingValue] // Set initial value here
       });
 
       // Add validators after setting the value
@@ -194,10 +193,6 @@ export class ProductForm implements OnInit {
     // Update the form
     this.attributes.updateValueAndValidity();
     this.productForm.updateValueAndValidity();
-
-    // For debugging
-    console.log('Form Values:', this.productForm.value);
-    console.log('Attributes Array:', this.attributes.value);
   }
 
   getDataTypeName(dataTypeId: number): string {

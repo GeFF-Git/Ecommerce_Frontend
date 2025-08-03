@@ -84,7 +84,7 @@
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Sale Price</mat-label>
               <input matInput type="number" formControlName="salePrice" step="0.01" min="0" required>
-              <span class="valid-font" matPrefix>$&nbsp;</span>
+              <span class="valid-font" matPrefix>₹&nbsp;</span>
               <mat-error *ngIf="productForm.get('salePrice')?.hasError('required')">
                 Sale price is required
               </mat-error>
@@ -96,7 +96,7 @@
             <mat-form-field appearance="outline" class="flex-1">
               <mat-label>Cost Price (Optional)</mat-label>
               <input matInput type="number" formControlName="costPrice" step="0.01" min="0">
-              <span class="valid-font" matPrefix>$&nbsp;</span>
+              <span class="valid-font" matPrefix>₹&nbsp;</span>
               <mat-error *ngIf="productForm.get('costPrice')?.hasError('invalidPrice')">
                 {{productForm.get('costPrice')?.errors?.['invalidPrice']?.message}}
               </mat-error>

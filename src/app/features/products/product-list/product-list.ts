@@ -87,6 +87,7 @@ export class ProductList implements OnInit {
   loadData(): void {
     this.products$ = this.productService.getAll();
     this.categories$ = this.categoryService.getAll();
+    this.setupFilters();
   }
 
   setupFilters(): void {
